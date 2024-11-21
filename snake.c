@@ -77,13 +77,18 @@ int main(){
     createSnake();
     winCondition = 2*(LINES + COLS);
 
+    cbreak();             // Disable line buffering
+    noecho();             // Don't echo input characters
+    curs_set(0);          // Hide the cursor
+    nodelay(stdscr,TRUE);
+
     do {
         // Here we should probably
         input();        // get input -> changes move Direction based off input: wasd/arrowkeys
         collision();    // check collisions
         movesnake();      // move snake -> move the snake head and the body follows the position it was last in
         refresh();
-        usleep(1000000/4); // microseconds = 1sec => 1,000,000 micro
+        usleep(1000000/10); // microseconds = 1sec => 1,000,000 micro
         // (1/2) of a second ^
     }while(isgameWon == 0 && isgameRun != 0);
     char str[100];
@@ -104,8 +109,21 @@ int main(){
 }
 
 void input(){
-    char ch = getch();
-    printf("%c",ch);
+    int ch = getch();
+    if (ch == 'w' || ch == KEY_UP){
+        moveDirection.x = -1;
+        moveDirection.y = 0;
+    }else if(ch == 's' || ch == KEY_DOWN){
+        moveDirection.x = 1;
+        moveDirection.y = 0;
+    }else if(ch == 'd' || ch == KEY_RIGHT){
+        moveDirection.x = 0;
+        moveDirection.y = 1;
+    }else if(ch == 'a' || ch == KEY_LEFT){
+        moveDirection.x = 0;
+        moveDirection.y = -1;
+    }
+    
 }
 void collision(){
     move(snake[0].x + moveDirection.x,snake[0].y + moveDirection.y);
