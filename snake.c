@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
-// to compile: gcc snake.c -o snake -l curses
-
+// to compile:
+//      gcc snake.c -o snake -l curses
 /*
     references:
         https://cs.ccsu.edu/~stan/classes/CS355/notes/09-EventDrivenProgramming.html
@@ -66,35 +66,51 @@
         The user wins the game if the snake's length grows to the length equal to half the perimeter of the border.
 
 */
-
+// functions initialization
 void createBorders();
 void createSnake();
 void input();
+int getRand(int max,int min);
+
+struct vector2{
+    int x;
+    int y;
+};
+
+// Snake info; (i wonder if we allow diagonal movement?)
+int snakeLen = 5; // initial length
+struct vector2 moveDirection; // this will be a vector 2;
+struct vector2 snake[128]; // contains info on the actual snake
+
+// Game info
 
 int main(){
-    fprintf(stderr,"Creating the virtual screen\n");
+    int isgameWon = 0; // exit if game won
+    int isgameRun = 1; // exit if game ended
+    srand(time(NULL)); // seeds rand number generator with current time atm
     LINES = 20; // Define borders
     COLS = 40; // Define border
-    initscr();
-    if (stdscr == NULL){
-        fprintf(stderr,"Error initializing screen");
-        return 1;
-    }
-    // x borders: x == 0 || x == LINES -1
-    // y borders: y == 0 || y == COLS  -1
-    createBorders();
-    refresh();
-    createSnake();
 
+    // Start Creating Game
+    initscr(); // Create Screen
+    createBorders();
+    createSnake();
+    
     sleep(3);
     endwin();
     return 0;
 }
 
+int getRand(int max,int min){ // returns random number in between the max and min
+    return (rand() % (max - min + 1)) + min;
+}
+
 void createBorders(){ // LINES COLS globals
-    for (int x = 0; x<LINES; x++){
+    // x borders: x == 0 || x == LINES -1
+    // y borders: y == 0 || y == COLS  -1
+    for (int x = 0; x<LINES; x++){ // No need to nested loop cause then you are looping over unecessary positions on the screen
         for (int y = 0; y<COLS; y++){
-            if (x == 0 || y == 0 || x == LINES-1 || y == COLS -1){ // Creates Borders when 
+            if ((x == 0 || x == LINES-1) || (y == 0 || y == COLS -1)){ // Same comment as above but this is just columns
                 move(x,y);
                 addch('#');
             }
@@ -103,5 +119,41 @@ void createBorders(){ // LINES COLS globals
 }
 
 void createSnake(){
-    // get random position
+    // Get Starting moveDirection
+    int r = getRand(4, 1);
+    printf("rand:%d\n",r);
+    switch (r) { // random direction
+        case 1:
+            moveDirection.x = 1;
+            moveDirection.y = 0;
+            break;
+        case 2:
+            moveDirection.x = -1;
+            moveDirection.y = 0;
+            break;
+        case 3:
+            moveDirection.x = 0;
+            moveDirection.y = 1;
+            break;
+        case 4:
+            moveDirection.x = 0;
+            moveDirection.y = 1;
+            break;
+    }
+    printf("MoveDirection x:%d,y%d\n",moveDirection.x,moveDirection.y);
+    // Move to Center and Add Head
+    int curX = LINES/2;
+    int curY = COLS/2;
+    move(curX,curY);
+    addch('0');
+    snake[0].x = curX;
+    snake[0].y = curY; // Sets the Head to center
+    for (int i = 1; i < snakeLen; i++){ // Build the rest of the body in the opposite of the move direction
+        snake[i].x = snake[i-1].x - moveDirection.x;
+        snake[i].y = snake[i-1].y - moveDirection.y;
+        move(snake[i].x, snake[i].y);
+        addch('o');
+    }
+
+    refresh();
 }
