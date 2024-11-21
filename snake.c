@@ -71,16 +71,18 @@ char body = '*'; // Snake's Body
 
 int main(){
     srand(time(NULL)); // seeds rand number generator with current time atm
+    
     // Start Creating Game
     initscr();
     createBorders();
     createSnake();
     winCondition = 2*(LINES + COLS);
-
+    
     cbreak();             // Disable line buffering
     noecho();             // Don't echo input characters
     curs_set(0);          // Hide the cursor
     nodelay(stdscr,TRUE);
+    keypad(stdscr,TRUE);
 
     do {
         // Here we should probably
@@ -111,15 +113,23 @@ int main(){
 void input(){
     int ch = getch();
     if (ch == 'w' || ch == KEY_UP){
+        if (moveDirection.x == 1)
+            return;
         moveDirection.x = -1;
         moveDirection.y = 0;
     }else if(ch == 's' || ch == KEY_DOWN){
+        if (moveDirection.x == -1)
+            return;
         moveDirection.x = 1;
         moveDirection.y = 0;
     }else if(ch == 'd' || ch == KEY_RIGHT){
+        if (moveDirection.y == -1)
+            return;
         moveDirection.x = 0;
         moveDirection.y = 1;
     }else if(ch == 'a' || ch == KEY_LEFT){
+        if (moveDirection.y == 1)
+            return;
         moveDirection.x = 0;
         moveDirection.y = -1;
     }
