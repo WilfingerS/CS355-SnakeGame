@@ -59,11 +59,13 @@ struct vector2{
 int snakeLen = 5; // initial length
 struct vector2 moveDirection; // this will be a vector 2;
 struct vector2 snake[128]; // contains info on the actual snake
+struct vector2 trophyPos;
 
 // Game info
 int isgameWon = 0; // (bool) exit if game won
 int isgameRun = 1; // (bool) exit if game ended
 int winCondition;
+char trophy;
 char head = 'X'; // Snake's Head
 char body = '*'; // Snake's Body
 
@@ -74,9 +76,10 @@ int main(){
     createBorders();
     createSnake();
     winCondition = 2*(LINES + COLS);
+
     do {
         // Here we should probably
-        //input();        // get input -> changes move Direction based off input: wasd/arrowkeys
+        input();        // get input -> changes move Direction based off input: wasd/arrowkeys
         collision();    // check collisions
         movesnake();      // move snake -> move the snake head and the body follows the position it was last in
         refresh();
@@ -99,6 +102,11 @@ int main(){
     endwin();
     return 0;
 }
+
+void input(){
+    char ch = getch();
+    printf("%c",ch);
+}
 void collision(){
     move(snake[0].x + moveDirection.x,snake[0].y + moveDirection.y);
     chtype chT = winch(stdscr);
@@ -119,6 +127,7 @@ void collision(){
     }
     
 }
+
 void movesnake(){
     struct vector2 prev;
     for (int i = 0; i < snakeLen; i++){
