@@ -48,6 +48,8 @@ void createSnake();
 void input();
 void movesnake();
 void collision();
+void genTrophy();
+
 int getRand(int max,int min);
 
 struct vector2{
@@ -65,25 +67,27 @@ struct vector2 trophyPos;
 int isgameWon = 0; // (bool) exit if game won
 int isgameRun = 1; // (bool) exit if game ended
 int winCondition;
-char trophy;
+char trophyChar;
 char head = 'X'; // Snake's Head
-char body = '*'; // Snake's Body
+char body = 'o'; // Snake's Body
 
 int main(){
     srand(time(NULL)); // seeds rand number generator with current time atm
     
     // Start Creating Game
     initscr();
-    createBorders();
-    createSnake();
-    winCondition = 2*(LINES + COLS);
-    
+    curs_set(0);          // Hide the cursor
     cbreak();             // Disable line buffering
     noecho();             // Don't echo input characters
-    curs_set(0);          // Hide the cursor
     nodelay(stdscr,TRUE);
     keypad(stdscr,TRUE);
+    clear();
 
+    createBorders();
+    createSnake();
+    genTrophy();
+
+    winCondition = 2*(LINES + COLS);
     do {
         // Here we should probably
         input();        // get input -> changes move Direction based off input: wasd/arrowkeys
@@ -91,8 +95,10 @@ int main(){
         movesnake();      // move snake -> move the snake head and the body follows the position it was last in
         refresh();
         usleep(1000000/10); // microseconds = 1sec => 1,000,000 micro
-        // (1/2) of a second ^
+        // (1/10) of a second ^
     }while(isgameWon == 0 && isgameRun != 0);
+
+    // Show Win/Lose
     char str[100];
     if (isgameWon == 1){
         strcpy(str, "YOU WON!");
@@ -106,8 +112,29 @@ int main(){
     refresh();
 
     sleep(5);
+    curs_set(1);
     endwin();
     return 0;
+}
+
+void genTrophy(){
+    int rand = getRand(9, 1);
+    trophyChar = rand + '0';
+    int isValidPos;
+    do{
+        isValidPos = 0;
+        trophyPos.x = getRand(LINES-1, 1);
+        trophyPos.y = getRand(COLS -1, 1);
+        for (int i = 0; i < snakeLen; i++){
+            if (snake[i].x == trophyPos.x && snake[i].y == trophyPos.y){
+                isValidPos = 1;
+                break;
+            }
+        }
+    }while(isValidPos != 0);
+    move(trophyPos.x,trophyPos.y);
+    addch(trophyChar);
+    refresh();
 }
 
 void input(){
@@ -135,19 +162,24 @@ void input(){
     }
     
 }
+
 void collision(){
     move(snake[0].x + moveDirection.x,snake[0].y + moveDirection.y);
     chtype chT = winch(stdscr);
     char ch = chT & A_CHARTEXT; // get the character of where the head in going
     
-    if (ch == head || ch == body || ch == '#'){
+    if (ch == body || ch == '#'){
         isgameRun = 0;
     }else if(ch != ' ' ){
         // Assume the snake ran into a trophy
-        //int trophyVal = ch - '0'; // convert char num to value by sub ascii value of 0
-        //snakeLen += trophyVal;
-        // generate new trophy on claim
-        printf("%c\n",ch);
+        int trophyVal = ch - '0';
+        int old = snakeLen;
+        snakeLen += trophyVal;
+        for (int i = old; i<snakeLen; i++){
+            snake[i].x = snake[i-1].x;
+            snake[i].y = snake[i-1].y;
+        }
+        genTrophy();
         // check winCondition on interaction with char
         if (snakeLen > winCondition){
             isgameWon = 1;
