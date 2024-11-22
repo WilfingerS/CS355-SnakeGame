@@ -6,41 +6,6 @@
 #include <time.h>
 /*
 to compile: gcc snake.c -o snake -l curses
-
-    references:
-        https://cs.ccsu.edu/~stan/classes/CS355/notes/09-EventDrivenProgramming.html
-        https://cs.ccsu.edu/~stan/classes/CS355/notes/08-TerminalControl.html
-        https://cs.ccsu.edu/~stan/classes/CS355/notes/10-VideoGameProgramming.html
-    
-    Terminal modes:
-        canonical (cooked): buffered until user presses enter
-        non-canonical (crmode): no buffering but driver handles ctrl-c and translating between new line and carriage return
-        non-anything (raw): driver passes input directly into prgrm
-        tcsetattr() -> setting specific terminal mode
-
-    curses.h:
-        allows programmer to set pos of the cursor and
-        control appearance of text on terminal screen
-        screen: 2d array with 0,0 being upper left
-        uses virtual screen where all changes are made via refresh()
-
-        initscr() initializes curseslib and tty
-        endwin() turns off curses lib and tty
-        refresh() updates screen
-        move(r,c) moves cursor to position (r,c)
-        addstr(s) draws string s on the screen in the current position
-        addch(c) draws char c on the screen in current position
-        clear() clears the screen
-
-
-    time prgraming:  
-        alarm();
-        sleep(n: unsigned int) :> suspend thread execution for interval
-
-    signals:
-        sync: inside process (division by 0)
-        async: outside proccess (Ctrl-C)
-
 */
 // functions initialization
 void createBorders();
@@ -69,6 +34,7 @@ struct vector2 trophyPos;
 // Game info
 int isgameWon = 0; // (bool) exit if game won
 int isgameRun = 1; // (bool) exit if game ended
+int isHighscore = 0;
 int snakeSpeed = 1000000/5; // 1/4 sec for uspeed
 int highscore = 0;
 char trophyChar;
@@ -85,11 +51,11 @@ int main(){
     initscr();
     cbreak();             // Disable line buffering
     noecho();             // Don't echo input characters
+    curs_set(0);          // Hide the cursor
     nodelay(stdscr,TRUE);
     keypad(stdscr,TRUE);
-    curs_set(0);          // Hide the cursor
-    clear();
     refresh();
+    clear();
     attrset(A_NORMAL);
 
     mvprintw(0,0,"Score: %d\tHighscore: %d",snakeLen-3,highscore); // move and print in one func
@@ -114,14 +80,17 @@ int main(){
 
     // Show Win/Lose
     char str[100];
-    if (isgameWon == 1){
-        strcpy(str, "NEW HIGHSCORE!");
-        updateData(); // Since the win condition is beating ur highscore
-    }else{
+    if (isgameWon == 1){ // PLAYER WON!
+        strcpy(str, "YOU WON!");
+    }else{// Show Player Lost
         strcpy(str,"YOU LOST!");
-        // Show Player Lost
     }
+
     mvaddstr(LINES/2,(COLS - strlen(str))/2,str);
+    if (isHighscore == 1){
+        updateData();
+        mvaddstr(LINES/2+1,COLS/2-7,"NEW HIGHSCORE!");
+    }
     refresh();
 
     sleep(5);
@@ -155,8 +124,8 @@ void genTrophy(){
     int isValidPos;
     do{
         isValidPos = 0;
-        trophyPos.y = getRand(LINES-2, 1);
-        trophyPos.x = getRand(COLS -2, 2);
+        trophyPos.y = getRand(LINES-2, 2);
+        trophyPos.x = getRand(COLS -2, 1);
         for (int i = 0; i < snakeLen; i++){
             if (snake[i].x == trophyPos.x && snake[i].y == trophyPos.y){
                 isValidPos = 1;
@@ -218,11 +187,16 @@ void collision(){
         }
         genTrophy();
         calcSpeed();
-        // check winCondition on interaction with char
+        // check newHighscore? on interaction with char
         if ((snakeLen-3) > highscore){
             highscore = snakeLen-3;
-            isgameWon = 1;
+            isHighscore = 1;
         }
+
+        if (snakeLen >= (LINES + COLS) ) // half the perimeter
+            isgameWon = 1;
+
+
         // Update Scoreboard
         mvprintw(0,0,"Score: %d\tHighscore: %d",snakeLen-3,highscore);
     }
