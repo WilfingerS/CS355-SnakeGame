@@ -38,7 +38,7 @@ int isHighscore = 0;
 int snakeSpeed = 1000000/5; // 1/4 sec for uspeed
 int highscore = 0;
 char trophyChar;
-char head = '+'; // Snake's Head
+char head = 'H'; // Snake's Head
 char body = 'o'; // Snake's Body
 
 int main(){
@@ -58,7 +58,7 @@ int main(){
     clear();
     attrset(A_NORMAL);
 
-    mvprintw(0,0,"Score: %d\tHighscore: %d",snakeLen-3,highscore); // move and print in one func
+    mvprintw(0,0,"Score: %d\tHighscore: %d\tTargetScore:%d",snakeLen-3,highscore,(COLS+LINES));
 
     createBorders();
     createSnake();
@@ -71,7 +71,7 @@ int main(){
         movesnake();      // move snake -> move the snake head and the body follows the position it was last in
         refresh();
         if (moveDirection.y != 0){
-            snakeSpeed *= 1.25; // give more time for going up and down
+            snakeSpeed *= 1.1;
         }  
         usleep(snakeSpeed); // sleep based on size
         if (moveDirection.y != 0)
@@ -139,8 +139,8 @@ void genTrophy(){
 
 void calcSpeed(){
     snakeSpeed = (1000000/5) - ((2500) * (snakeLen-3));
-    if (snakeSpeed < 25000)
-        snakeSpeed = 25000; // cant go lower than this
+    if (snakeSpeed < 75000)
+        snakeSpeed = 75000; // cant go lower than this
 }
 
 void input(){
@@ -198,7 +198,7 @@ void collision(){
 
 
         // Update Scoreboard
-        mvprintw(0,0,"Score: %d\tHighscore: %d",snakeLen-3,highscore);
+        mvprintw(0,0,"Score: %d\tHighscore: %d\tTargetScore:%d",snakeLen-3,highscore,(COLS+LINES));
     }
     
 }
