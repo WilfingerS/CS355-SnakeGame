@@ -49,6 +49,9 @@ void input();
 void movesnake();
 void collision();
 void genTrophy();
+void calcSpeed();
+void updateData();
+void getData();
 
 int getRand(int max,int min);
 
@@ -58,7 +61,7 @@ struct vector2{
 };
 
 // Snake info; (i wonder if we should allow diagonal movement?) (probably not)
-int snakeLen = 5; // initial length
+int snakeLen = 3; // initial length
 struct vector2 moveDirection; // this will be a vector 2;
 struct vector2 snake[128]; // contains info on the actual snake
 struct vector2 trophyPos;
@@ -66,62 +69,84 @@ struct vector2 trophyPos;
 // Game info
 int isgameWon = 0; // (bool) exit if game won
 int isgameRun = 1; // (bool) exit if game ended
-int winCondition;
+int snakeSpeed = 1000000/5; // 1/4 sec for uspeed
+int highscore = 0;
 char trophyChar;
-char head = 'X'; // Snake's Head
+char head = '+'; // Snake's Head
 char body = 'o'; // Snake's Body
 
 int main(){
-    srand(time(NULL)); // seeds rand number generator with current time atm
+    // Get Highscore
+    getData();
+    // seeds rand number generator with current time atm
+    srand(time(NULL)); 
     
     // Start Creating Game
     initscr();
-    curs_set(0);          // Hide the cursor
     cbreak();             // Disable line buffering
     noecho();             // Don't echo input characters
     nodelay(stdscr,TRUE);
     keypad(stdscr,TRUE);
+    curs_set(0);          // Hide the cursor
     clear();
     refresh();
     attrset(A_NORMAL);
+
+    mvprintw(0,0,"Score: %d\tHighscore: %d",snakeLen-3,highscore); // move and print in one func
+
     createBorders();
     createSnake();
     genTrophy();
 
-    winCondition = 2*(LINES + COLS);
     do {
         // Here we should probably
         input();        // get input -> changes move Direction based off input: wasd/arrowkeys
         collision();    // check collisions
         movesnake();      // move snake -> move the snake head and the body follows the position it was last in
-        move(0,0); // get that cursor out of the way idk why it isnt making it invis
         refresh();
-        if (moveDirection.x != 0){ // since x has less columns to head up
-            usleep(1000000/7); // microseconds = 1sec => 1,000,000 micro
-        }else{
-            usleep(1000000/10); // microseconds = 1sec => 1,000,000 micro
-        }
-        
-        // (1/10) of a second ^
-    }while(isgameWon == 0 && isgameRun != 0);
+        if (moveDirection.y != 0){
+            snakeSpeed *= 1.25; // give more time for going up and down
+        }  
+        usleep(snakeSpeed); // sleep based on size
+        if (moveDirection.y != 0)
+            calcSpeed(); // recalc
+    }while(isgameRun != 0);
 
     // Show Win/Lose
     char str[100];
     if (isgameWon == 1){
-        strcpy(str, "YOU WON!");
-        // Show Player Won?
+        strcpy(str, "NEW HIGHSCORE!");
+        updateData(); // Since the win condition is beating ur highscore
     }else{
         strcpy(str,"YOU LOST!");
         // Show Player Lost
     }
-    move(LINES/2,(COLS - strlen(str))/2);
-    addstr(str);
+    mvaddstr(LINES/2,(COLS - strlen(str))/2,str);
     refresh();
 
     sleep(5);
     curs_set(1);
     endwin();
     return 0;
+}
+void getData(){
+    FILE *data = fopen("data.dat", "r+");
+    char buffer[128];
+    if(data){
+        fscanf(data,"%s",buffer);
+        highscore = atoi(buffer);
+    }else{
+        data = fopen("data.dat", "w+");
+        strcpy(buffer,"0");
+        fprintf(data,buffer,sizeof(buffer));
+    }
+
+    fclose(data);
+}
+void updateData(){
+    FILE *data = fopen("data.dat","w");
+    fprintf(data,"%d",highscore);
+    fclose(data);
 }
 
 void genTrophy(){
@@ -130,8 +155,8 @@ void genTrophy(){
     int isValidPos;
     do{
         isValidPos = 0;
-        trophyPos.x = getRand(LINES-1, 1);
-        trophyPos.y = getRand(COLS -1, 1);
+        trophyPos.y = getRand(LINES-2, 1);
+        trophyPos.x = getRand(COLS -2, 2);
         for (int i = 0; i < snakeLen; i++){
             if (snake[i].x == trophyPos.x && snake[i].y == trophyPos.y){
                 isValidPos = 1;
@@ -139,9 +164,14 @@ void genTrophy(){
             }
         }
     }while(isValidPos != 0);
-    move(trophyPos.x,trophyPos.y);
-    addch(trophyChar);
+    mvaddch(trophyPos.y,trophyPos.x,trophyChar);
     refresh();
+}
+
+void calcSpeed(){
+    snakeSpeed = (1000000/5) - ((2500) * (snakeLen-3));
+    if (snakeSpeed < 25000)
+        snakeSpeed = 25000; // cant go lower than this
 }
 
 void input(){
@@ -174,7 +204,7 @@ void collision(){
     move(snake[0].y + moveDirection.y,snake[0].x + moveDirection.x);
     chtype chT = winch(stdscr);
     char ch = chT & A_CHARTEXT; // get the character of where the head in going
-    
+
     if (ch == body || ch == '#'){
         isgameRun = 0;
     }else if(ch != ' ' ){
@@ -187,10 +217,14 @@ void collision(){
             snake[i].y = snake[i-1].y;
         }
         genTrophy();
+        calcSpeed();
         // check winCondition on interaction with char
-        if (snakeLen > winCondition){
+        if ((snakeLen-3) > highscore){
+            highscore = snakeLen-3;
             isgameWon = 1;
         }
+        // Update Scoreboard
+        mvprintw(0,0,"Score: %d\tHighscore: %d",snakeLen-3,highscore);
     }
     
 }
@@ -211,10 +245,8 @@ void movesnake(){
         snake[i].y = prev.y;
         prev.x = tempx;
         prev.y = tempy;
-        move(snake[i].y, snake[i].x);
-        addch(bodypart);
-        move(prev.y,prev.x);
-        addch(' ');
+        mvaddch(snake[i].y, snake[i].x,bodypart);
+        mvaddch(prev.y,prev.x,' ');
     }
 }
 
@@ -228,10 +260,9 @@ void createBorders(){ // Seth
     // x borders: x == 0 || x == LINES-1
     // y borders: y == 0 || y == COLS-1
     for (int x = 0; x<COLS; x++){ // No need to nested loop cause then you are looping over unecessary positions on the screen
-        for (int y = 0; y<LINES; y++){
-            if ((x == 0 || x == COLS-1) || (y == 0 || y == LINES -1)){ // Same comment as above but this is just columns
-                move(y,x);
-                addch('#');
+        for (int y = 1; y<LINES; y++){
+            if ((x == 0 || x == COLS-1) || (y == 1 || y == LINES -1)){ // Same comment as above but this is just columns
+                mvaddch(y,x,'#');
             }
         }
     }
@@ -262,16 +293,14 @@ void createSnake(){ // Seth
     // Move to Center and Add Head
     int curX = COLS/2;
     int curY = LINES/2;
-    move(curX,curY);
-    addch(head);
     snake[0].x = curX;
     snake[0].y = curY; // Sets the Head to center
+    mvaddch(snake[0].y,snake[0].x,head);
 
     for (int i = 1; i < snakeLen; i++){ // Build the rest of the body in the opposite of the move direction
         snake[i].x = snake[i-1].x - moveDirection.x;
         snake[i].y = snake[i-1].y - moveDirection.y;
-        move(snake[i].y, snake[i].x);
-        addch(body);
+        mvaddch(snake[i].y, snake[i].x,body);
     }
 
     refresh();
