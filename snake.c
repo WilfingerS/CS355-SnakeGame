@@ -82,7 +82,8 @@ int main(){
     nodelay(stdscr,TRUE);
     keypad(stdscr,TRUE);
     clear();
-
+    refresh();
+    attrset(A_NORMAL);
     createBorders();
     createSnake();
     genTrophy();
@@ -93,8 +94,14 @@ int main(){
         input();        // get input -> changes move Direction based off input: wasd/arrowkeys
         collision();    // check collisions
         movesnake();      // move snake -> move the snake head and the body follows the position it was last in
+        move(0,0); // get that cursor out of the way idk why it isnt making it invis
         refresh();
-        usleep(1000000/10); // microseconds = 1sec => 1,000,000 micro
+        if (moveDirection.x != 0){ // since x has less columns to head up
+            usleep(1000000/7); // microseconds = 1sec => 1,000,000 micro
+        }else{
+            usleep(1000000/10); // microseconds = 1sec => 1,000,000 micro
+        }
+        
         // (1/10) of a second ^
     }while(isgameWon == 0 && isgameRun != 0);
 
@@ -140,31 +147,31 @@ void genTrophy(){
 void input(){
     int ch = getch();
     if (ch == 'w' || ch == KEY_UP){
-        if (moveDirection.x == 1)
-            return;
-        moveDirection.x = -1;
-        moveDirection.y = 0;
-    }else if(ch == 's' || ch == KEY_DOWN){
-        if (moveDirection.x == -1)
-            return;
-        moveDirection.x = 1;
-        moveDirection.y = 0;
-    }else if(ch == 'd' || ch == KEY_RIGHT){
-        if (moveDirection.y == -1)
-            return;
-        moveDirection.x = 0;
-        moveDirection.y = 1;
-    }else if(ch == 'a' || ch == KEY_LEFT){
         if (moveDirection.y == 1)
             return;
         moveDirection.x = 0;
         moveDirection.y = -1;
+    }else if(ch == 's' || ch == KEY_DOWN){
+        if (moveDirection.y == -1)
+            return;
+        moveDirection.x = 0;
+        moveDirection.y = 1;
+    }else if(ch == 'd' || ch == KEY_RIGHT){
+        if (moveDirection.x == -1)
+            return;
+        moveDirection.x = 1;
+        moveDirection.y = 0;
+    }else if(ch == 'a' || ch == KEY_LEFT){
+        if (moveDirection.x == 1)
+            return;
+        moveDirection.x = -1;
+        moveDirection.y = 0;
     }
     
 }
 
 void collision(){
-    move(snake[0].x + moveDirection.x,snake[0].y + moveDirection.y);
+    move(snake[0].y + moveDirection.y,snake[0].x + moveDirection.x);
     chtype chT = winch(stdscr);
     char ch = chT & A_CHARTEXT; // get the character of where the head in going
     
@@ -204,9 +211,9 @@ void movesnake(){
         snake[i].y = prev.y;
         prev.x = tempx;
         prev.y = tempy;
-        move(snake[i].x, snake[i].y);
+        move(snake[i].y, snake[i].x);
         addch(bodypart);
-        move(prev.x,prev.y);
+        move(prev.y,prev.x);
         addch(' ');
     }
 }
@@ -220,10 +227,10 @@ void createBorders(){ // Seth
     // LINES COLS globals
     // x borders: x == 0 || x == LINES-1
     // y borders: y == 0 || y == COLS-1
-    for (int x = 0; x<LINES; x++){ // No need to nested loop cause then you are looping over unecessary positions on the screen
-        for (int y = 0; y<COLS; y++){
-            if ((x == 0 || x == LINES-1) || (y == 0 || y == COLS -1)){ // Same comment as above but this is just columns
-                move(x,y);
+    for (int x = 0; x<COLS; x++){ // No need to nested loop cause then you are looping over unecessary positions on the screen
+        for (int y = 0; y<LINES; y++){
+            if ((x == 0 || x == COLS-1) || (y == 0 || y == LINES -1)){ // Same comment as above but this is just columns
+                move(y,x);
                 addch('#');
             }
         }
@@ -253,8 +260,8 @@ void createSnake(){ // Seth
     }
 
     // Move to Center and Add Head
-    int curX = LINES/2;
-    int curY = COLS/2;
+    int curX = COLS/2;
+    int curY = LINES/2;
     move(curX,curY);
     addch(head);
     snake[0].x = curX;
@@ -263,7 +270,7 @@ void createSnake(){ // Seth
     for (int i = 1; i < snakeLen; i++){ // Build the rest of the body in the opposite of the move direction
         snake[i].x = snake[i-1].x - moveDirection.x;
         snake[i].y = snake[i-1].y - moveDirection.y;
-        move(snake[i].x, snake[i].y);
+        move(snake[i].y, snake[i].x);
         addch(body);
     }
 
