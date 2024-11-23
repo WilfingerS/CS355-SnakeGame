@@ -38,7 +38,7 @@ int isHighscore = 0;
 int snakeSpeed = 1000000/5; // 1/4 sec for uspeed
 int highscore = 0;
 char trophyChar;
-char head = 'H'; // Snake's Head
+char head = 'O'; // Snake's Head
 char body = 'o'; // Snake's Body
 
 int main(){
@@ -69,10 +69,11 @@ int main(){
         input();        // get input -> changes move Direction based off input: wasd/arrowkeys
         collision();    // check collisions
         movesnake();      // move snake -> move the snake head and the body follows the position it was last in
+        move(LINES-1,COLS-1);
         refresh();
         if (moveDirection.y != 0){
             snakeSpeed *= 1.1;
-        }  
+        } 
         usleep(snakeSpeed); // sleep based on size
         if (moveDirection.y != 0)
             calcSpeed(); // recalc
@@ -150,21 +151,25 @@ void input(){
             return;
         moveDirection.x = 0;
         moveDirection.y = -1;
+        head = '^';
     }else if(ch == 's' || ch == KEY_DOWN){
         if (moveDirection.y == -1)
             return;
         moveDirection.x = 0;
         moveDirection.y = 1;
+        head = 'v';
     }else if(ch == 'd' || ch == KEY_RIGHT){
         if (moveDirection.x == -1)
             return;
         moveDirection.x = 1;
         moveDirection.y = 0;
+        head = '>';
     }else if(ch == 'a' || ch == KEY_LEFT){
         if (moveDirection.x == 1)
             return;
         moveDirection.x = -1;
         moveDirection.y = 0;
+        head = '<';
     }
     
 }
@@ -247,20 +252,24 @@ void createSnake(){ // Seth
     int r = getRand(4, 1);
     switch (r) { // random direction
         case 1:
-            moveDirection.x = -1;
-            moveDirection.y = 0;
+            moveDirection.x = 0;
+            moveDirection.y = -1;
+            head = '^';
             break;
         case 2:
-            moveDirection.x = 1;
-            moveDirection.y = 0;
+            moveDirection.x = 0;
+            moveDirection.y = 1;
+            head = 'v';
             break;
         case 3:
-            moveDirection.x = 0;
-            moveDirection.y = 1;
+            moveDirection.x = 1;
+            moveDirection.y = 0;
+            head = '>';
             break;
         case 4:
-            moveDirection.x = 0;
-            moveDirection.y = 1;
+            moveDirection.x = -1;
+            moveDirection.y = 0;
+            head = '<';
             break;
     }
 
