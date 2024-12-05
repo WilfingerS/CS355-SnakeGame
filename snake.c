@@ -17,7 +17,7 @@ void genFieldChar(char fieldChar);
 void calcSpeed();
 void updateData();
 void getData();
-
+void startScreen();
 
 int getRand(int max,int min);
 
@@ -58,6 +58,8 @@ int main(){
     refresh();
     clear();
     attrset(A_NORMAL);
+
+    startScreen();
 
     mvprintw(0,0,"Score: %d\tHighscore: %d\tTargetScore:%d",snakeLen-3,highscore,(COLS+LINES));
 
@@ -119,7 +121,36 @@ void updateData(){
     fprintf(data,"%d",highscore);
     fclose(data);
 }
-
+//Charles
+void startScreen(){
+    move((LINES/2) - 10,(COLS/2)-7);
+    printw("Welcome to Snake!");
+    move((LINES/2)-6, (COLS/2)-7);
+    printw("High score is %d", highscore);
+    move((LINES/2)-2, (COLS/2)-16);
+    //ASCII art of snake, formatting wasn't having it and neither was i
+    printw("/^\\/^\\\n"
+           "\t\t\t\t\t   _|__|  O|\n"
+           "\t\t\t\t  \\/     /~     \\_/ \\\n"
+           "\t\t\t\t  \\____|__________/  \\\n"
+           "\t\t\t\t\t\\_______      \\\n"
+           "\t\t\t\t               `\\     \\                 \\\n"
+           "\t\t\t\t                |     |                  \\\n"
+           "\t\t\t\t               /      /                    \\\n"
+           "\t\t\t\t              /     /                       \\\\\n"
+           "\t\t\t\t            /      /                         \\ \\\n"
+           "\t\t\t\t           /     /                            \\  \\\n"
+           "\t\t\t\t          /     /             _----_           \\  \\\n"
+           "\t\t\t\t         /     /           _-~      ~-_         |  |\n"
+           "\t\t\t\t        (      (        _-~    _--_    ~-_     _/  |\n"
+           "\t\t\t\t        \\      ~-____-~    _-~    ~-_    ~-_-~    /\n"
+           "\t\t\t\t         ~-_           _-~          ~-_       _-~~\n"
+           "\t\t\t\t            ~--______-~                ~-___-~");
+    refresh();
+    sleep(3);
+    clear();
+}
+//Charles
 //Generate chars like trophies on field
 void genFieldChar(char fieldChar){
     trophyChar = fieldChar;
