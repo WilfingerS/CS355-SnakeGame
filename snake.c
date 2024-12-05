@@ -13,11 +13,11 @@ void createSnake();
 void input();
 void movesnake();
 void collision();
-void genTrophy();
+void genFieldChar(char fieldChar);
 void calcSpeed();
 void updateData();
 void getData();
-void genObsticle();
+
 
 int getRand(int max,int min);
 
@@ -63,7 +63,7 @@ int main(){
 
     createBorders();
     createSnake();
-    genTrophy();
+    genFieldChar(getRand(9, 1) + '0');
 
     do {
         // Here we should probably
@@ -120,9 +120,9 @@ void updateData(){
     fclose(data);
 }
 
-void genTrophy(){
-    int rand = getRand(9, 1);
-    trophyChar = rand + '0';
+//Generate chars like trophies on field
+void genFieldChar(char fieldChar){
+    trophyChar = fieldChar;
     int isValidPos;
     do{
         isValidPos = 0;
@@ -193,10 +193,10 @@ void collision(){
             snake[i].x = snake[i-1].x;
             snake[i].y = snake[i-1].y;
         }
-        genTrophy();
+        genFieldChar(getRand(9, 1) + '0');
         calcSpeed();
         if(snakeLen > 50) {
-            genObsticle();
+            genFieldChar('#');
         }
         // check newHighscore? on interaction with char
         if ((snakeLen-3) > highscore){
@@ -212,27 +212,6 @@ void collision(){
         mvprintw(0,0,"Score: %d\tHighscore: %d\tTargetScore:%d",snakeLen-3,highscore,(COLS+LINES));
     }
     
-}
-
-void genObsticle(){
-    char obstChar = '#';
-    int isValidPos;
-    int x,y;
-    do{
-        isValidPos = 0;
-        //Generate a random x and y position
-        y = getRand(LINES-2, 2);
-        x = getRand(COLS -2, 1);
-        for (int i = 0; i < snakeLen; i++){
-            //If the position that is generated is in the location of the snake, break and generate new x,y
-            if ((snake[i].x == x && snake[i].y == y) ||(trophyPos.x == x && trophyPos.y == y)){
-                isValidPos = 1;
-                break;
-            }
-        }
-    }while(isValidPos != 0);
-    mvaddch(y,x,obstChar);
-    refresh();
 }
 
 void movesnake(){
