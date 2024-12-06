@@ -1,6 +1,8 @@
 # CS355-SnakeGame
  Project Details (from Stan's requirements) <br>
     https://cs.ccsu.edu/~stan/classes/CS355/Project-FA24.html<br><br>
+    COMPILE BEFORE RUNNING: ./snake<br>
+    to compile: gcc snake.c -o snake -l curses<br><br>
     <b>The snake pit:</b><br>
         The snake pit is the area where the snake can move.<br>
         The snake pit must utilize all available space of the current terminal window.<br>
