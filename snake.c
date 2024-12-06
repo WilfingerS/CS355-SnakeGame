@@ -42,9 +42,9 @@ char trophyChar;
 char head = 'O'; // Snake's Head
 char body = 'o'; // Snake's Body
 
-int main(){
+int main(){ // Seth + Everyone Else
     // Get Highscore
-    getData();
+    getData(); 
     // seeds rand number generator with current time atm
     srand(time(NULL)); 
     
@@ -102,7 +102,7 @@ int main(){
     endwin();
     return 0;
 }
-void getData(){
+void getData(){ // Seth
     FILE *data = fopen("data.dat", "r+");
     char buffer[128];
     if(data){
@@ -116,7 +116,7 @@ void getData(){
 
     fclose(data);
 }
-void updateData(){
+void updateData(){ // Seth
     FILE *data = fopen("data.dat","w");
     fprintf(data,"%d",highscore);
     fclose(data);
@@ -172,13 +172,13 @@ void genFieldChar(char fieldChar){
     refresh();
 }
 
-void calcSpeed(){
+void calcSpeed(){ // Juan
     snakeSpeed = (1000000/5) - ((2500) * (snakeLen-3));
     if (snakeSpeed < 75000)
         snakeSpeed = 75000; // cant go lower than this
 }
 
-void input(){
+void input(){ // Charles
     int ch = getch();
     if (ch == 'w' || ch == KEY_UP){
         if (moveDirection.y == 1)
@@ -208,7 +208,7 @@ void input(){
     
 }
 
-void collision(){
+void collision(){ // Nick
     move(snake[0].y + moveDirection.y,snake[0].x + moveDirection.x);
     chtype chT = winch(stdscr);
     char ch = chT & A_CHARTEXT; // get the character of where the head in going
@@ -245,7 +245,7 @@ void collision(){
     
 }
 
-void movesnake(){
+void movesnake(){ // Juan
     struct vector2 prev;
     for (int i = 0; i < snakeLen; i++){
         int tempx = snake[i].x;
@@ -284,7 +284,7 @@ void createBorders(){ // Seth
     }
 }
 
-void createSnake(){ // Seth
+void createSnake(){ // Juan + Seth
     // Get Random Starting moveDirection
     int r = getRand(4, 1);
     switch (r) { // random direction
